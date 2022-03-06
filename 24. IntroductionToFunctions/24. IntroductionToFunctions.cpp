@@ -31,5 +31,7 @@ int main()
     cout << x + y;
     cout << Sum(x, y);
 
+    cout << Contains({ "air", "water", "fire" }, "fire");
+
     return 0;
 }
