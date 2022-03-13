@@ -1,13 +1,14 @@
-﻿#include <iostream>
+#include <iostream>
 #include <map>
 #include <vector>
 #include <string>
+#include <set>
 using namespace std;
 
 int main()
 {
 	int Q, lastRouteIndex = 0;
-	map<int, vector<string>> busRoutes;
+	map<int, set<string>> busRoutes;
 
 	cin >> Q;
 
@@ -18,11 +19,14 @@ int main()
 
 		cin >> stopsCount;
 
-		vector<string> stops(stopsCount);
+		set<string> stops;
 
-		for (auto& s : stops)
+		for (size_t i = 0; i < stopsCount; i++)
 		{
+			string s;
+
 			cin >> s;
+			stops.insert(s);
 		}
 
 		for (int i = 0; i < busRoutes.size(); i++)
