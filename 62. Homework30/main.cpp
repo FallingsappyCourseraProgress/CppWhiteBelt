@@ -1,25 +1,15 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 class SortedStrings {
 public:
     void AddString(const string& s) {
-        if (strings.size() == 0)
-        {
-            strings.push_back(s);
-            return;
-        }
-
-        for (int i = 0; i < strings.size(); i++)
-        {
-            if (strings[i] < s)
-            {
-                strings.insert(strings.begin() + i, s);
-                return;
-            }
-        }
+        strings.push_back(s);
+        sort(strings.begin(), strings.end());
     }
+
     vector<string> GetSortedStrings() {
         return strings;
     }
