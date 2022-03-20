@@ -47,12 +47,25 @@ private:
 
 class Function {
 public:
-    void AddPart(char operation, double value)
-    {
+    void AddPart(char operation, double value) {
         parts.push_back(FunctionPart(operation, value));
     };
-    double Apply(double value) const;
-    void Invert();
+
+    double Apply(double value) const {
+        for (const FunctionPart& part : parts) {
+            value = part.Apply(value);
+        }
+
+        return value;
+    };
+
+    void Invert() {
+        for (Function& part : parts) {
+            part.Invert();
+        }
+
+        reverse(begin(parts), end(parts));
+    };
 
 private:
     vector<FunctionPart> parts;
@@ -68,6 +81,7 @@ Function MakeWeightFunction(const Params& params, const Image& image) {
 }
 
 double ComputeImageWeight(const Params& params, const Image& image) {
+    // code duplication
     //double weight = image.quality;
     //weight -= image.freshness * params.a + params.b;
     //weight += image.rating * params.c;
@@ -80,6 +94,7 @@ double ComputeImageWeight(const Params& params, const Image& image) {
 }
 
 double ComputeQualityByWeight(const Params& params, const Image& image, double weight) {
+    // code duplication
     //double quality = weight;
     //
     //quality -= image.rating * params.c;
@@ -96,5 +111,10 @@ double ComputeQualityByWeight(const Params& params, const Image& image, double w
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    Image image = { 10, 2, 6 };
+    Params params = { 4, 2, 6};
+    // 10 - 2 * 4 - 2 + 6 * 6 = 36
+
+    cout << ComputeImageWeight(params, image) << endl;
+    cout << ComputeQualityByWeight(params, image, 46) << endl;
 }
