@@ -3,7 +3,7 @@ using namespace std;
 
 void PrintInt()
 {
-    int x;
+    int x = 0;
     cout << x << endl;
 }
 
@@ -29,6 +29,22 @@ void PrintParity(int x)
     cout << x << " is " << parity << endl;
 }
 
+string GetPositivity(int x)
+{
+    if (x > 0)
+    {
+        return "positive";
+    }
+    if (x < 0)
+    {
+        return "negative";
+    }
+    else
+    {
+        return "zero";
+    }
+}
+
 void PrintPositivity(int x)
 {
     // ???
@@ -49,22 +65,6 @@ void PrintPositivity(int x)
     }
 
     cout << x << " is " << positivity << endl;
-}
-
-string GetPositivity(int x)
-{
-    if (x > 0)
-    {
-        return "positive";
-    }
-    if (x < 0)
-    {
-        return "negative";
-    }
-    else
-    {
-        return "zero";
-    }
 }
 
 int main()
