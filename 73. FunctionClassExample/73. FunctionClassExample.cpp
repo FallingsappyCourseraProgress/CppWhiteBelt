@@ -60,7 +60,7 @@ public:
     };
 
     void Invert() {
-        for (Function& part : parts) {
+        for (FunctionPart& part : parts) {
             part.Invert();
         }
 
@@ -106,7 +106,7 @@ double ComputeQualityByWeight(const Params& params, const Image& image, double w
 
     function.Invert();
 
-    function.Apply(weight);
+    return function.Apply(weight);
 }
 
 int main()
