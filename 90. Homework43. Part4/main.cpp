@@ -97,27 +97,13 @@ ostream& operator << (ostream& stream, const Rational& rational) {
     return stream;
 }
 
-istream& operator >> (istream& stream, Rational& rational) {
-    if (!stream.good())
-    {
-        return stream;
+istream& operator >> (istream& stream, Rational& r) {
+    int n, d;
+    char c;
+    stream >> n >> c >> d;
+    if (stream && c == '/') {
+        r = Rational(n, d);
     }
-
-    int n = INT32_MIN, d = INT32_MIN;
-    char delimeter;
-    
-
-    stream >> n;
-    stream >> delimeter;
-    stream >> d;
-
-    if (delimeter != '/' || n == INT32_MIN || d == INT32_MIN)
-    {
-        return stream;
-    }
-
-    rational = Rational(n, d);
-
     return stream;
 }
 
