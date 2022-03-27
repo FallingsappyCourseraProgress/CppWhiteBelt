@@ -1,9 +1,17 @@
 #include <iostream>
-#include <map>
-#include <set>
-#include <vector>
+#include <exception>
 #include <numeric>
+#include <sstream>
+#include <map>
 using namespace std;
+
+enum class Operation
+{
+    Add,
+    Substract,
+    Multiply,
+    Divide
+};
 
 class Rational {
 public:
@@ -13,6 +21,11 @@ public:
     }
 
     Rational(int numerator, int denominator) {
+        if (denominator == 0)
+        {
+            throw invalid_argument("Invalid argument");
+        }
+
         if (numerator == 0)
         {
             p = 0;
@@ -39,9 +52,6 @@ public:
     int Denominator() const {
         return q;
     }
-
-
-
 private:
     int p;
     int q;
@@ -81,10 +91,13 @@ Rational operator / (const Rational& lhs, const Rational& rhs)
     int n = lhs.Numerator() * rhs.Denominator();
     int d = lhs.Denominator() * rhs.Numerator();
 
+    if (d == 0)
+    {
+        throw domain_error("Division by zero");
+    }
+
     return Rational(n, d);
 }
-
-// Implement << and >> operators for Rational class
 
 ostream& operator << (ostream& stream, const Rational& rational) {
     stream << rational.Numerator() << "/" << rational.Denominator();
@@ -102,9 +115,6 @@ istream& operator >> (istream& stream, Rational& r) {
     return stream;
 }
 
-// Реализуйте для класса Rational оператор(ы), необходимые для использования его
-// в качестве ключа map'а и элемента set'а
-
 bool operator < (const Rational& lhs, const Rational& rhs)
 {
     if (lhs.Denominator() == rhs.Denominator())
@@ -119,37 +129,105 @@ bool operator < (const Rational& lhs, const Rational& rhs)
     return n1 < n2;
 }
 
-int main() {
-    {
-        const set<Rational> rs = { {1, 2}, {1, 25}, {3, 4}, {3, 4}, {1, 2} };
-        if (rs.size() != 3) {
-            cout << "Wrong amount of items in the set" << endl;
-            return 1;
-        }
+Rational MakeCalculation(istream& stream)
+{
+    Rational r1;
+    string operation;
+    Rational r2;
+    Operation parsedOperation;
 
-        vector<Rational> v;
-        for (auto x : rs) {
-            v.push_back(x);
-        }
-        if (v != vector<Rational>{ {1, 25}, { 1, 2 }, { 3, 4 }}) {
-            cout << "Rationals comparison works incorrectly" << endl;
-            return 2;
-        }
+    stream >> r1;
+    stream >> operation;
+    stream >> r2;
+
+    map<string, Operation> allowedOperations =
+    {
+        { "+", Operation::Add },
+        { "*", Operation::Multiply },
+        { "-", Operation::Substract },
+        { "/", Operation::Divide }
+    };
+
+    try
+    {
+        parsedOperation = allowedOperations.at(operation);
+    }
+    catch (const std::exception&)
+    {
+        throw invalid_argument("unsupported operation");
     }
 
+    switch (parsedOperation)
     {
-        map<Rational, int> count;
-        ++count[{1, 2}];
-        ++count[{1, 2}];
-
-        ++count[{2, 3}];
-
-        if (count.size() != 2) {
-            cout << "Wrong amount of items in the map" << endl;
-            return 3;
+        case Operation::Add:
+        {
+            return r1 + r2;
         }
+        case Operation::Substract:
+        {
+            return r1 - r2;
+        }
+        case Operation::Multiply:
+        {
+            return r1 * r2;
+        }
+        case Operation::Divide:
+        {
+            return r1 / r2;
+        }
+        default:
+            break;
+    }
+}
+
+int main()
+{
+    string input;
+
+    getline(cin, input);
+
+    stringstream ss(input);
+
+    try
+    {
+        cout << MakeCalculation(ss);
+    }
+    catch (invalid_argument& e) {
+        cout << e.what();
+    }
+    catch (domain_error& e) {
+        cout << e.what();
     }
 
-    cout << "OK" << endl;
+    //{
+    //    istringstream input("1/2 + 1/3");
+    //    Rational result = MakeCalculation(input);
+    //    bool correct = result == Rational(5, 6);
+    //    if (!correct) {
+    //        cout << "Add operation works incorrectly: " << result << endl;
+    //        return 1;
+    //    }
+    //}
+
+    //try {
+    //    istringstream input("1/2 + 5/0");
+    //    Rational result = MakeCalculation(input);
+    //    cout << "Doesn't throw in case of zero denominator" << endl;
+    //    return 1;
+    //}
+    //catch (invalid_argument&) {
+    //}
+
+    //try {
+    //    istringstream input("4/5 / 0/8");
+    //    Rational result = MakeCalculation(input);
+    //    cout << "Doesn't throw in case of zero denominator" << endl;
+    //    return 1;
+    //}
+    //catch (domain_error&) {
+    //}
+
+    //cout << "OK" << endl;
+    
     return 0;
 }
