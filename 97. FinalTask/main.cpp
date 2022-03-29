@@ -1,8 +1,19 @@
 #include <iostream>
 #include <string>
+#include <set>
+#include <map>
+
 using namespace std;
 
 // Реализуйте функции и методы классов и при необходимости добавьте свои
+
+enum class Operation
+{
+    Add,
+    Del,
+    Find,
+    Print
+};
 
 class Date {
 public:
@@ -19,17 +30,55 @@ public:
     bool DeleteEvent(const Date& date, const string& event);
     int  DeleteDate(const Date& date);
 
-    /* ??? */ Find(const Date& date) const;
+    void Find(const Date& date) const;
 
     void Print() const;
+private:
+    map<Date, set<string>> storage;
 };
 
 int main() {
     Database db;
 
+    Operation parsedOperation;
+
+    map<string, Operation> allowedOperations =
+    {
+        { "Add", Operation::Add },
+        { "Del", Operation::Del },
+        { "Find", Operation::Find },
+        { "Print", Operation::Print }
+    };
+
     string command;
-    while (getline(cin, command)) {
-        // Считайте команды с потока ввода и обработайте каждую
+    while (getline(cin, command)) 
+    {
+        try
+        {
+            parsedOperation = allowedOperations.at(command);
+        }
+        catch (const std::exception&)
+        {
+            throw invalid_argument("unsupported operation");
+        }
+
+        switch (parsedOperation)
+        {
+        case Operation::Add:
+            /* code */
+            break;
+        case Operation::Del:
+            /* code */
+            break;
+        case Operation::Find:
+            /* code */
+            break;
+        case Operation::Print:
+            /* code */
+            break;
+        default:
+            break;
+        }
     }
 
     return 0;
