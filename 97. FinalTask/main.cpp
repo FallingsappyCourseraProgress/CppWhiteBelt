@@ -100,14 +100,46 @@ public:
     };
 
     bool DeleteEvent(const Date& date, const string& event) {
-        storage[date].erase(event);
+        if (storage.find(date) != storage.end()) {
+            if (storage[date].find(event) != storage[date].end()) {
+                storage[date].erase(event);
+
+                return true;
+            }
+        }
+
+        return false;
     };
 
-    int  DeleteDate(const Date& date);
+    int DeleteDate(const Date& date) {
+        int eventCount = 0;
+        
+        if (storage.find(date) != storage.end()) {
+            eventCount = storage[date].size();
 
-    void Find(const Date& date) const;
+            storage[date].clear();
 
-    void Print() const;
+            return eventCount;
+        }
+
+        return 0;
+    };
+
+    set<string> Find(const Date& date) const {
+        if (storage.find(date) != storage.end()) {
+            return storage.at(date);
+        }
+    };
+
+    void Print() const {
+        for (auto d : storage) {
+            auto foundByDateEvents = Find(d.first);
+
+            for (auto e : foundByDateEvents) {
+                cout << e << endl;
+            }
+        }
+    };
 private:
     map<Date, set<string>> storage;
 };
@@ -117,9 +149,9 @@ int main() {
 
     string combinedInput;
 
-    string operationInput;
-    string dateInput;
-    string eventInput;
+    string operationInput = "";
+    string dateInput = "";
+    string eventInput = "";
 
     Operation parsedOperation;
 
@@ -154,27 +186,46 @@ int main() {
 
         switch (parsedOperation)
         {
-        case Operation::Add:
-            db.AddEvent(Date(dateInput), eventInput);
-            break;
-        case Operation::Del:
-            if (eventInput.empty()) {
-                db.DeleteDate(Date(dateInput));
+            case Operation::Add:
+            {
+                db.AddEvent(Date(dateInput), eventInput);
+                break;
+            }
+            case Operation::Del:
+            {
+                if (eventInput.empty()) {
+                    int deletedEventCount = db.DeleteDate(Date(dateInput));
+
+                    cout << "Deleted " << deletedEventCount << " events" << endl;
+
+                    break;
+                }
+
+                db.DeleteEvent(Date(dateInput), eventInput)
+                    ? (cout << "Deleted successfully" << endl)
+                    : (cout << "Event not found" << endl);
 
                 break;
             }
+            case Operation::Find:
+            {
+                auto foundByDateEvents = db.Find(Date(dateInput));
 
-            db.DeleteEvent(Date(dateInput), eventInput);
+                for (auto e : foundByDateEvents) {
+                    cout << e << endl;
+                }
 
-            break;
-        case Operation::Find:
-            db.Find(Date(dateInput));
-            break;
-        case Operation::Print:
-            db.Print();
-            break;
-        default:
-            break;
+                break;
+            }
+            case Operation::Print:
+            {
+                db.Print();
+                break;
+            }
+            default:
+            {
+                break;
+            }
         }
     }
 
