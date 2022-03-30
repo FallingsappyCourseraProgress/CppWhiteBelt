@@ -155,16 +155,23 @@ int main() {
         switch (parsedOperation)
         {
         case Operation::Add:
-            //db.AddEvent()
+            db.AddEvent(Date(dateInput), eventInput);
             break;
         case Operation::Del:
-            /* code */
+            if (eventInput.empty()) {
+                db.DeleteDate(Date(dateInput));
+
+                break;
+            }
+
+            db.DeleteEvent(Date(dateInput), eventInput);
+
             break;
         case Operation::Find:
-            /* code */
+            db.Find(Date(dateInput));
             break;
         case Operation::Print:
-            /* code */
+            db.Print();
             break;
         default:
             break;
