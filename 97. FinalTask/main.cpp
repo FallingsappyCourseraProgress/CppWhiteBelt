@@ -1,5 +1,7 @@
 #include <iostream>
+#include <vector>
 #include <string>
+#include <sstream>
 #include <set>
 #include <map>
 
@@ -15,19 +17,92 @@ enum class Operation
     Print
 };
 
-class Date {
-public:
-    int GetYear() const;
-    int GetMonth() const;
-    int GetDay() const;
+struct Day
+{
+    int value;
+
+    explicit Day(int value)
+    {
+        this->value = value;
+    }
 };
 
-bool operator<(const Date& lhs, const Date& rhs);
+struct Month
+{
+    int value;
+
+    explicit Month(int value)
+    {
+        this->value = value;
+    }
+};
+
+struct Year
+{
+    int value;
+
+    explicit Year(int value)
+    {
+        this->value = value;
+    }
+};
+
+class Date {
+public:
+    Date(string dateToParse) {
+
+    }
+
+    Date(Day newDay, Month newMonth, Year newYear) {
+        _day = newDay.value;
+        _month = newMonth.value;
+        _year = newYear.value;
+    }
+
+    int GetYear() const {
+        return _year;
+    };
+    int GetMonth() const {
+        return _month;
+    };
+    int GetDay() const {
+        return _day;
+    };
+
+private:
+    int _year;
+    int _month;
+    int _day;
+};
+
+bool operator < (const Date& lhs, const Date& rhs)
+{
+    if (lhs.GetYear() == rhs.GetYear()) {
+        if (lhs.GetMonth() == rhs.GetMonth()) {
+            if (lhs.GetDay() == rhs.GetDay()) {
+                return false;
+            }
+
+            return lhs.GetDay() < rhs.GetDay();
+        }
+
+        return lhs.GetMonth() < rhs.GetMonth();
+    }
+
+    return lhs.GetYear() < rhs.GetYear();
+};
 
 class Database {
 public:
-    void AddEvent(const Date& date, const string& event);
-    bool DeleteEvent(const Date& date, const string& event);
+    void AddEvent(const Date& date, const string& event)
+    {
+        storage[date].insert(event);
+    };
+
+    bool DeleteEvent(const Date& date, const string& event) {
+        storage[date].erase(event);
+    };
+
     int  DeleteDate(const Date& date);
 
     void Find(const Date& date) const;
@@ -40,6 +115,12 @@ private:
 int main() {
     Database db;
 
+    string combinedInput;
+
+    string operationInput;
+    string dateInput;
+    string eventInput;
+
     Operation parsedOperation;
 
     map<string, Operation> allowedOperations =
@@ -50,22 +131,31 @@ int main() {
         { "Print", Operation::Print }
     };
 
-    string command;
-    while (getline(cin, command)) 
+    while (getline(cin, combinedInput))
     {
+        istringstream iss(combinedInput);
+
+        if (iss.rdbuf()->in_avail() == 0)
+        {
+            continue;
+        }
+
+        iss >> operationInput >> dateInput >> eventInput;
+
         try
         {
-            parsedOperation = allowedOperations.at(command);
+            parsedOperation = allowedOperations.at(operationInput);
         }
         catch (const std::exception&)
         {
-            throw invalid_argument("unsupported operation");
+            cout << "Unknown command: " << operationInput << endl;
+            continue;
         }
 
         switch (parsedOperation)
         {
         case Operation::Add:
-            /* code */
+            //db.AddEvent()
             break;
         case Operation::Del:
             /* code */
