@@ -4,6 +4,7 @@
 #include <sstream>
 #include <set>
 #include <map>
+#include <iomanip>
 
 using namespace std;
 
@@ -47,10 +48,40 @@ struct Year
     }
 };
 
+std::string readuntil(std::istream& in, std::string delimiter) {
+    std::string cr;
+    char delim = *(delimiter.rbegin());
+    size_t sz = delimiter.size(), tot;
+    do {
+        std::string temp;
+        std::getline(in, temp, delim);
+        cr += temp + delim;
+        tot = cr.size();
+    } while ((tot < sz) || (cr.substr(tot - sz, sz) != delimiter));
+    return cr.substr(0, tot - sz);  // or return cr; if you want to keep the delimiter
+}
+
 class Date {
 public:
     Date(string dateToParse) {
+        std::istringstream date_stream(dateToParse);
+        bool flag = true;
 
+        flag = flag && (date_stream >> _year);
+        flag = flag && (date_stream.peek() == '-');
+        date_stream.ignore(1);
+
+        flag = flag && (date_stream >> _month);
+        flag = flag && (date_stream.peek() == '-');
+        date_stream.ignore(1);
+
+        flag = flag && (date_stream >> _day);
+        flag = flag && date_stream.eof();
+
+        if (!flag)
+        {
+            throw std::logic_error("Wrong date format: " + dateToParse);
+        }
     }
 
     Date(Day newDay, Month newMonth, Year newYear) {
@@ -91,6 +122,16 @@ bool operator < (const Date& lhs, const Date& rhs)
 
     return lhs.GetYear() < rhs.GetYear();
 };
+
+std::ostream& operator << (std::ostream& stream, const Date& date)
+{
+    stream << std::setfill('0') << std::setw(4) << std::to_string(date.GetYear());
+    stream << "-";
+    stream << std::setfill('0') << std::setw(2) << std::to_string(date.GetMonth());
+    stream << "-";
+    stream << std::setfill('0') << std::setw(2) << std::to_string(date.GetDay());
+    return stream;
+}
 
 class Database {
 public:
@@ -136,7 +177,7 @@ public:
             auto foundByDateEvents = Find(d.first);
 
             for (auto e : foundByDateEvents) {
-                cout << e << endl;
+                cout << d.first << " " << e << endl;
             }
         }
     };
@@ -145,89 +186,97 @@ private:
 };
 
 int main() {
-    Database db;
-
-    string combinedInput;
-
-    string operationInput = "";
-    string dateInput = "";
-    string eventInput = "";
-
-    Operation parsedOperation;
-
-    map<string, Operation> allowedOperations =
+    try
     {
-        { "Add", Operation::Add },
-        { "Del", Operation::Del },
-        { "Find", Operation::Find },
-        { "Print", Operation::Print }
-    };
+        Database db;
 
-    while (getline(cin, combinedInput))
-    {
-        istringstream iss(combinedInput);
+        string combinedInput;
 
-        if (iss.rdbuf()->in_avail() == 0)
+        map<string, Operation> allowedOperations =
         {
-            continue;
-        }
+            { "Add", Operation::Add },
+            { "Del", Operation::Del },
+            { "Find", Operation::Find },
+            { "Print", Operation::Print }
+        };
 
-        iss >> operationInput >> dateInput >> eventInput;
+        while (getline(cin, combinedInput))
+        {
+            Operation parsedOperation;
 
-        try
-        {
-            parsedOperation = allowedOperations.at(operationInput);
-        }
-        catch (const std::exception&)
-        {
-            cout << "Unknown command: " << operationInput << endl;
-            continue;
-        }
+            string operationInput = "";
+            string dateInput = "";
+            string eventInput = "";
 
-        switch (parsedOperation)
-        {
-            case Operation::Add:
+            istringstream iss(combinedInput);
+
+            if (iss.rdbuf()->in_avail() == 0)
             {
-                db.AddEvent(Date(dateInput), eventInput);
-                break;
+                continue;
             }
-            case Operation::Del:
-            {
-                if (eventInput.empty()) {
-                    int deletedEventCount = db.DeleteDate(Date(dateInput));
 
-                    cout << "Deleted " << deletedEventCount << " events" << endl;
+            iss >> operationInput >> dateInput >> eventInput;
+
+            try
+            {
+                parsedOperation = allowedOperations.at(operationInput);
+            }
+            catch (const std::exception&)
+            {
+                cout << "Unknown command: " << operationInput << endl;
+                continue;
+            }
+
+            switch (parsedOperation)
+            {
+                case Operation::Add:
+                {
+                    db.AddEvent(Date(dateInput), eventInput);
+                    break;
+                }
+                case Operation::Del:
+                {
+                    if (eventInput.empty()) {
+                        int deletedEventCount = db.DeleteDate(Date(dateInput));
+
+                        cout << "Deleted " << deletedEventCount << " events" << endl;
+
+                        break;
+                    }
+
+                    db.DeleteEvent(Date(dateInput), eventInput)
+                        ? (cout << "Deleted successfully" << endl)
+                        : (cout << "Event not found" << endl);
 
                     break;
                 }
+                case Operation::Find:
+                {
+                    auto foundByDateEvents = db.Find(Date(dateInput));
 
-                db.DeleteEvent(Date(dateInput), eventInput)
-                    ? (cout << "Deleted successfully" << endl)
-                    : (cout << "Event not found" << endl);
+                    for (auto e : foundByDateEvents) {
+                        cout << e << endl;
+                    }
 
-                break;
-            }
-            case Operation::Find:
-            {
-                auto foundByDateEvents = db.Find(Date(dateInput));
-
-                for (auto e : foundByDateEvents) {
-                    cout << e << endl;
+                    break;
                 }
-
-                break;
-            }
-            case Operation::Print:
-            {
-                db.Print();
-                break;
-            }
-            default:
-            {
-                break;
+                case Operation::Print:
+                {
+                    db.Print();
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
             }
         }
     }
-
+    catch (const std::exception& e)
+    {
+        std::cout << e.what() << std::endl;
+        return 0;
+    }
+  
     return 0;
 }
