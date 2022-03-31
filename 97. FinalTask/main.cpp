@@ -4,8 +4,6 @@
 #include <map>
 #include <iomanip>
 
-using namespace std;
-
 // Реализуйте функции и методы классов и при необходимости добавьте свои
 
 enum class Operation
@@ -53,11 +51,11 @@ public:
         _month = newMonth.value;
         _year = newYear.value;
         if (_month < 1 || _month > 12) {
-            throw std::logic_error("Month value is invalid: " + to_string(_month));
+            throw std::logic_error("Month value is invalid: " + std::to_string(_month));
         }
 
         if (_day < 1 || _day > 31) {
-            throw std::logic_error("Day value is invalid: " + to_string(_day));
+            throw std::logic_error("Day value is invalid: " + std::to_string(_day));
         }
     }
 
@@ -71,38 +69,38 @@ public:
         return _day;
     };
 
+    static Date ParseDate(const std::string& date)
+    {
+        std::istringstream date_stream(date);
+        bool flag = true;
+
+        int year;
+        flag = flag && (date_stream >> year);
+        flag = flag && (date_stream.peek() == '-');
+        date_stream.ignore(1);
+
+        int month;
+        flag = flag && (date_stream >> month);
+        flag = flag && (date_stream.peek() == '-');
+        date_stream.ignore(1);
+
+        int day;
+        flag = flag && (date_stream >> day);
+        flag = flag && date_stream.eof();
+
+        if (!flag)
+        {
+            throw std::logic_error("Wrong date format: " + date);
+        }
+
+        return Date(Year(year), Month(month), Day(day));
+    }
+
 private:
     int _year;
     int _month;
     int _day;
 };
-
-Date ParseDate(const std::string& date)
-{
-    std::istringstream date_stream(date);
-    bool flag = true;
-
-    int year;
-    flag = flag && (date_stream >> year);
-    flag = flag && (date_stream.peek() == '-');
-    date_stream.ignore(1);
-
-    int month;
-    flag = flag && (date_stream >> month);
-    flag = flag && (date_stream.peek() == '-');
-    date_stream.ignore(1);
-
-    int day;
-    flag = flag && (date_stream >> day);
-    flag = flag && date_stream.eof();
-
-    if (!flag)
-    {
-        throw std::logic_error("Wrong date format: " + date);
-    }
-
-    return Date(Year(year), Month(month), Day(day));
-}
 
 bool operator < (const Date& lhs, const Date& rhs)
 {
@@ -133,12 +131,12 @@ std::ostream& operator << (std::ostream& stream, const Date& date)
 
 class Database {
 public:
-    void AddEvent(const Date& date, const string& event)
+    void AddEvent(const Date& date, const std::string& event)
     {
         storage[date].insert(event);
     };
 
-    bool DeleteEvent(const Date& date, const string& event) {
+    bool DeleteEvent(const Date& date, const std::string& event) {
         if (storage.find(date) != storage.end()) {
             if (storage[date].find(event) != storage[date].end()) {
                 storage[date].erase(event);
@@ -164,7 +162,7 @@ public:
         return 0;
     };
 
-    set<string> Find(const Date& date) const {
+    std::set<std::string> Find(const Date& date) const {
         std::set<std::string> result;
 
         if (storage.find(date) != storage.end()) {
@@ -179,12 +177,12 @@ public:
             auto foundByDateEvents = Find(d.first);
 
             for (auto e : foundByDateEvents) {
-                cout << d.first << " " << e << endl;
+                std::cout << d.first << " " << e << std::endl;
             }
         }
     };
 private:
-    map<Date, set<string>> storage;
+    std::map<Date, std::set<std::string>> storage;
 };
 
 int main() {
@@ -192,9 +190,9 @@ int main() {
     {
         Database db;
 
-        string combinedInput;
+        std::string combinedInput;
 
-        map<string, Operation> allowedOperations =
+        std::map<std::string, Operation> allowedOperations =
         {
             { "Add", Operation::Add },
             { "Del", Operation::Del },
@@ -202,15 +200,15 @@ int main() {
             { "Print", Operation::Print }
         };
 
-        while (getline(cin, combinedInput))
+        while (std::getline(std::cin, combinedInput))
         {
             Operation parsedOperation;
 
-            string operationInput = "";
-            string dateInput = "";
-            string eventInput = "";
+            std::string operationInput = "";
+            std::string dateInput = "";
+            std::string eventInput = "";
 
-            istringstream iss(combinedInput);
+            std::istringstream iss(combinedInput);
 
             if (iss.rdbuf()->in_avail() == 0)
             {
@@ -225,7 +223,7 @@ int main() {
             }
             catch (const std::exception&)
             {
-                cout << "Unknown command: " << operationInput << endl;
+                std::cout << "Unknown command: " << operationInput << std::endl;
                 continue;
             }
 
@@ -233,37 +231,37 @@ int main() {
             {
                 case Operation::Add:
                 {
-                    const Date date = ParseDate(dateInput);
+                    const Date date = Date::ParseDate(dateInput);
 
                     db.AddEvent(date, eventInput);
                     break;
                 }
                 case Operation::Del:
                 {
-                    const Date date = ParseDate(dateInput);
+                    const Date date = Date::ParseDate(dateInput);
 
                     if (eventInput.empty()) {
                         int deletedEventCount = db.DeleteDate(date);
 
-                        cout << "Deleted " << deletedEventCount << " events" << endl;
+                        std::cout << "Deleted " << deletedEventCount << " events" << std::endl;
 
                         break;
                     }
 
                     db.DeleteEvent(date, eventInput)
-                        ? (cout << "Deleted successfully" << endl)
-                        : (cout << "Event not found" << endl);
+                        ? (std::cout << "Deleted successfully" << std::endl)
+                        : (std::cout << "Event not found" << std::endl);
 
                     break;
                 }
                 case Operation::Find:
                 {
-                    const Date date = ParseDate(dateInput);
+                    const Date date = Date::ParseDate(dateInput);
 
                     auto foundByDateEvents = db.Find(date);
 
                     for (auto e : foundByDateEvents) {
-                        cout << e << endl;
+                        std::cout << e << std::endl;
                     }
 
                     break;
