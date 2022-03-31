@@ -1,6 +1,4 @@
 #include <iostream>
-#include <vector>
-#include <string>
 #include <sstream>
 #include <set>
 #include <map>
@@ -48,46 +46,19 @@ struct Year
     }
 };
 
-std::string readuntil(std::istream& in, std::string delimiter) {
-    std::string cr;
-    char delim = *(delimiter.rbegin());
-    size_t sz = delimiter.size(), tot;
-    do {
-        std::string temp;
-        std::getline(in, temp, delim);
-        cr += temp + delim;
-        tot = cr.size();
-    } while ((tot < sz) || (cr.substr(tot - sz, sz) != delimiter));
-    return cr.substr(0, tot - sz);  // or return cr; if you want to keep the delimiter
-}
-
 class Date {
 public:
-    Date(string dateToParse) {
-        std::istringstream date_stream(dateToParse);
-        bool flag = true;
-
-        flag = flag && (date_stream >> _year);
-        flag = flag && (date_stream.peek() == '-');
-        date_stream.ignore(1);
-
-        flag = flag && (date_stream >> _month);
-        flag = flag && (date_stream.peek() == '-');
-        date_stream.ignore(1);
-
-        flag = flag && (date_stream >> _day);
-        flag = flag && date_stream.eof();
-
-        if (!flag)
-        {
-            throw std::logic_error("Wrong date format: " + dateToParse);
-        }
-    }
-
-    Date(Day newDay, Month newMonth, Year newYear) {
+    Date(Year newYear, Month newMonth, Day newDay) {
         _day = newDay.value;
         _month = newMonth.value;
         _year = newYear.value;
+        if (_month < 1 || _month > 12) {
+            throw std::logic_error("Month value is invalid: " + to_string(_month));
+        }
+
+        if (_day < 1 || _day > 31) {
+            throw std::logic_error("Day value is invalid: " + to_string(_day));
+        }
     }
 
     int GetYear() const {
@@ -105,6 +76,33 @@ private:
     int _month;
     int _day;
 };
+
+Date ParseDate(const std::string& date)
+{
+    std::istringstream date_stream(date);
+    bool flag = true;
+
+    int year;
+    flag = flag && (date_stream >> year);
+    flag = flag && (date_stream.peek() == '-');
+    date_stream.ignore(1);
+
+    int month;
+    flag = flag && (date_stream >> month);
+    flag = flag && (date_stream.peek() == '-');
+    date_stream.ignore(1);
+
+    int day;
+    flag = flag && (date_stream >> day);
+    flag = flag && date_stream.eof();
+
+    if (!flag)
+    {
+        throw std::logic_error("Wrong date format: " + date);
+    }
+
+    return Date(Year(year), Month(month), Day(day));
+}
 
 bool operator < (const Date& lhs, const Date& rhs)
 {
@@ -167,9 +165,13 @@ public:
     };
 
     set<string> Find(const Date& date) const {
+        std::set<std::string> result;
+
         if (storage.find(date) != storage.end()) {
-            return storage.at(date);
+            result = storage.at(date);
         }
+
+        return result;
     };
 
     void Print() const {
@@ -231,20 +233,24 @@ int main() {
             {
                 case Operation::Add:
                 {
-                    db.AddEvent(Date(dateInput), eventInput);
+                    const Date date = ParseDate(dateInput);
+
+                    db.AddEvent(date, eventInput);
                     break;
                 }
                 case Operation::Del:
                 {
+                    const Date date = ParseDate(dateInput);
+
                     if (eventInput.empty()) {
-                        int deletedEventCount = db.DeleteDate(Date(dateInput));
+                        int deletedEventCount = db.DeleteDate(date);
 
                         cout << "Deleted " << deletedEventCount << " events" << endl;
 
                         break;
                     }
 
-                    db.DeleteEvent(Date(dateInput), eventInput)
+                    db.DeleteEvent(date, eventInput)
                         ? (cout << "Deleted successfully" << endl)
                         : (cout << "Event not found" << endl);
 
@@ -252,7 +258,9 @@ int main() {
                 }
                 case Operation::Find:
                 {
-                    auto foundByDateEvents = db.Find(Date(dateInput));
+                    const Date date = ParseDate(dateInput);
+
+                    auto foundByDateEvents = db.Find(date);
 
                     for (auto e : foundByDateEvents) {
                         cout << e << endl;
